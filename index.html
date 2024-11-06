@@ -2,13 +2,22 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <meta name="description"
-        content="RigGaussian: Rigged 3d gaussian generation from a single image">
+  <meta name="description" content="RigGaussian: Rigged 3d gaussian generation from a single image">
   <meta name="keywords" content="Nerfies, D-NeRF, NeRF">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Nerfies: Deformable Neural Radiance Fields</title>
-
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/favicon.svg">
   <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -412,6 +421,7 @@
     <!--/ Animation. -->
 
 
+
     <!-- Concurrent Work. -->
     <div class="columns is-centered">
       <div class="column is-full-width">
@@ -441,6 +451,101 @@
 
   </div>
 </section>
+
+
+<!-- text 2 anime showcase -->
+<!-- Text 2 Anime Showcase -->
+<section class="section" id="text2anime-section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Text 2 Anime</h2>
+        <p class="content has-text-justified">
+          Explore how simple text descriptions transform into dynamic anime-style animations. Here are some examples of our model in action:
+        </p>
+      </div>
+    </div>
+
+    <div class="columns is-centered" id="video-container">
+      <!-- JavaScript will dynamically insert a single video card here -->
+    </div>
+  </div>
+</section>
+
+<script>
+// Fetch video data from prompts.json and set up a simple carousel
+fetch('./static/videos/text2anime/prompts.json')
+  .then(response => response.json())
+  .then(data => {
+    console.log("Loaded JSON data:", data);  // Confirm JSON data is loaded
+    const container = document.getElementById('video-container');
+    let currentIndex = 0;
+
+    // Function to display a single video card
+    function displayVideo() {
+      container.innerHTML = '';  // Clear previous content
+      const entry = data[currentIndex];
+      console.log(`Displaying video ${currentIndex + 1}: ${entry.prompt}`);
+
+      // Create video card structure
+      const column = document.createElement('div');
+      column.classList.add('column', 'is-half');
+
+      const card = document.createElement('div');
+      card.classList.add('card');
+
+      const cardContent = document.createElement('div');
+      cardContent.classList.add('card-content');
+
+      const title = document.createElement('h3');
+      title.classList.add('title', 'is-5');
+      title.textContent = `Example ${currentIndex + 1}: "${entry.prompt}"`;
+
+      const description = document.createElement('p');
+      description.classList.add('content', 'has-text-justified');
+      // description.textContent = `This description transforms into an anime-style scene: ${entry.prompt}`;
+
+      cardContent.appendChild(title);
+      // cardContent.appendChild(description);
+
+      const cardVideo = document.createElement('div');
+      cardVideo.classList.add('card-video', 'has-text-centered');
+
+      // Directly set src attribute on the video element
+      const videoElement = document.createElement('video');
+      videoElement.src = `./static/videos/text2anime/${entry.videos[0]}`;  // Only use the first video file
+      videoElement.controls = true;
+      videoElement.autoplay = true;
+      videoElement.muted = true;
+      videoElement.loop = true;
+      videoElement.playsInline = true;
+      videoElement.width = "100%";
+
+      // Error handling for video loading issues
+      videoElement.onerror = () => {
+        console.error(`Error loading video: ${videoElement.src}`);
+        description.textContent = "Video failed to load.";
+      };
+
+      cardVideo.appendChild(videoElement);
+      card.appendChild(cardContent);
+      card.appendChild(cardVideo);
+      column.appendChild(card);
+      container.appendChild(column);
+    }
+
+    // Display the first video initially
+    displayVideo();
+
+    // Set up interval for the carousel
+    setInterval(() => {
+      currentIndex = (currentIndex + 1) % data.length;
+      displayVideo();
+    }, 5000);
+  })
+  .catch(error => console.error('Error loading video prompts:', error));
+</script>
+
 
 
 <section class="section" id="BibTeX">
