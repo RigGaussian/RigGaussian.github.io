@@ -13,6 +13,10 @@
   <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
   <link rel="stylesheet" href="./static/css/index.css">
   <link rel="icon" href="./static/images/favicon.svg">
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+
+
+
   <!-- Global site tag (gtag.js) - Google Analytics -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script defer src="./static/js/fontawesome.all.min.js"></script>
@@ -454,7 +458,71 @@
 
 
 <!-- text 2 anime showcase -->
-<!-- Text 2 Anime Showcase -->
+
+<style>
+  /* 外层容器样式 */
+  .carousel-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 内部滑动容器 */
+  .carousel {
+    display: flex;
+    transition: transform 0.5s ease;
+  }
+
+  /* 单个视频项 */
+  .video-item {
+    flex: 0 0 300px;
+    margin-right: 20px;
+    text-align: center;
+  }
+
+  /* 视频与文字对齐 */
+  .video-item video,
+  .video-item .text-prompt {
+    width: 100%;
+    height: auto;
+  }
+
+  .text-prompt {
+    margin-top: 10px;
+    word-wrap: break-word;
+    white-space: normal;
+  }
+
+  /* 左右箭头按钮 */
+  .carousel-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 2rem;
+    color: #333;
+    background: rgba(255, 255, 255, 0.7);
+    border: none;
+    cursor: pointer;
+    z-index: 10;
+  }
+  .carousel-button.left {
+    left: -30px;
+  }
+  .carousel-button.right {
+    right: -30px;
+  }
+  .carousel {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+  }
+
+</style>
+
 <section class="section" id="text2anime-section">
   <div class="container is-max-desktop">
     <div class="columns is-centered has-text-centered">
@@ -466,85 +534,111 @@
       </div>
     </div>
 
-    <div class="columns is-centered" id="video-container">
-      <!-- JavaScript will dynamically insert a single video card here -->
+    <!-- 左侧按钮 -->
+    <button class="carousel-button left" onclick="carouselScrollLeft()">&#9664;</button>
+
+    <div class="carousel-container">
+      <div class="carousel" id="carousel">
+        <!-- JavaScript 将在此处动态插入视频项 -->
+      </div>
     </div>
+
+    <!-- 右侧按钮 -->
+    <button class="carousel-button right" onclick="carouselScrollRight()">&#9654;</button>
   </div>
 </section>
 
+
 <script>
-// Fetch video data from prompts.json and set up a simple carousel
-fetch('./static/videos/text2anime/prompts.json')
-  .then(response => response.json())
-  .then(data => {
-    console.log("Loaded JSON data:", data);  // Confirm JSON data is loaded
-    const container = document.getElementById('video-container');
-    let currentIndex = 0;
+  let currentIndex = 0;
+  let itemWidth;
+  let shuffledVideos = [];
+  let visibleItems;
 
-    // Function to display a single video card
-    function displayVideo() {
-      container.innerHTML = '';  // Clear previous content
-      const entry = data[currentIndex];
-      console.log(`Displaying video ${currentIndex + 1}: ${entry.prompt}`);
+  fetch('./static/videos/text2anime/prompts.json')
+    .then(response => response.json())
+    .then(data => {
+      const carousel = document.getElementById('carousel');
 
-      // Create video card structure
-      const column = document.createElement('div');
-      column.classList.add('column', 'is-half');
+      data.forEach(entry => {
+        entry.videos.forEach(videoFile => {
+          shuffledVideos.push({
+            prompt: entry.prompt,
+            video: `./static/videos/text2anime/${videoFile}`
+          });
+        });
+      });
 
-      const card = document.createElement('div');
-      card.classList.add('card');
+      shuffledVideos = shuffledVideos.sort(() => Math.random() - 0.5);
 
-      const cardContent = document.createElement('div');
-      cardContent.classList.add('card-content');
+      shuffledVideos.forEach(item => {
+        const videoItem = document.createElement('div');
+        videoItem.classList.add('video-item');
 
-      const title = document.createElement('h3');
-      title.classList.add('title', 'is-5');
-      title.textContent = `Example ${currentIndex + 1}: "${entry.prompt}"`;
+        const videoElement = document.createElement('video');
+        videoElement.src = item.video;
+        videoElement.autoplay = true;
+        videoElement.muted = true;
+        videoElement.loop = true;
+        videoElement.playsInline = true;
 
-      const description = document.createElement('p');
-      description.classList.add('content', 'has-text-justified');
-      // description.textContent = `This description transforms into an anime-style scene: ${entry.prompt}`;
+        const textPrompt = document.createElement('div');
+        textPrompt.classList.add('text-prompt');
+        textPrompt.textContent = item.prompt;
 
-      cardContent.appendChild(title);
-      // cardContent.appendChild(description);
+        videoItem.appendChild(videoElement);
+        videoItem.appendChild(textPrompt);
 
-      const cardVideo = document.createElement('div');
-      cardVideo.classList.add('card-video', 'has-text-centered');
+        carousel.appendChild(videoItem);
+      });
 
-      // Directly set src attribute on the video element
-      const videoElement = document.createElement('video');
-      videoElement.src = `./static/videos/text2anime/${entry.videos[0]}`;  // Only use the first video file
-      videoElement.controls = true;
-      videoElement.autoplay = true;
-      videoElement.muted = true;
-      videoElement.loop = true;
-      videoElement.playsInline = true;
-      videoElement.width = "100%";
+      // 在视频项加载完成后，更新itemWidth和visibleItems
+      const carouselContainer = document.querySelector('.carousel-container');
+      const containerWidth = carouselContainer.offsetWidth;
 
-      // Error handling for video loading issues
-      videoElement.onerror = () => {
-        console.error(`Error loading video: ${videoElement.src}`);
-        description.textContent = "Video failed to load.";
-      };
+      itemWidth = document.querySelector('.video-item').offsetWidth;
+      visibleItems = Math.floor(containerWidth / itemWidth);
 
-      cardVideo.appendChild(videoElement);
-      card.appendChild(cardContent);
-      card.appendChild(cardVideo);
-      column.appendChild(card);
-      container.appendChild(column);
+      // 自动滚动效果
+      setInterval(() => {
+        carouselScrollRight();
+      }, 5000);
+    })
+    .catch(error => console.error('Error loading video prompts:', error));
+
+    function carouselScrollLeft() {
+      const maxIndex = shuffledVideos.length - visibleItems;
+      currentIndex = (currentIndex - 1 + maxIndex + 1) % (maxIndex + 1);
+      updateCarouselPosition();
     }
 
-    // Display the first video initially
-    displayVideo();
 
-    // Set up interval for the carousel
-    setInterval(() => {
-      currentIndex = (currentIndex + 1) % data.length;
-      displayVideo();
-    }, 5000);
-  })
-  .catch(error => console.error('Error loading video prompts:', error));
+    function carouselScrollRight() {
+      const maxIndex = shuffledVideos.length - visibleItems;
+      currentIndex = (currentIndex + 1) % (maxIndex + 1);
+      updateCarouselPosition();
+    }
+
+
+  function updateCarouselPosition() {
+    const carousel = document.getElementById('carousel');
+    const offset = -currentIndex * (itemWidth + 20); // 如果保留margin-right
+    carousel.style.transform = `translateX(${offset}px)`;
+  }
+
+  // 窗口大小改变时，重新计算visibleItems
+  window.addEventListener('resize', () => {
+    const carouselContainer = document.querySelector('.carousel-container');
+    const containerWidth = carouselContainer.offsetWidth;
+    itemWidth = document.querySelector('.video-item').offsetWidth;
+    visibleItems = Math.floor(containerWidth / itemWidth);
+
+    // 更新位置，防止出现空白
+    updateCarouselPosition();
+  });
 </script>
+
+
 
 
 
